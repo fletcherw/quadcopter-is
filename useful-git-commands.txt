@@ -1,0 +1,10 @@
+git pull -- pull local copy of repository from code.google.com, merges automatically.
+git fetch -- pulls a local copy without automatically merging
+git add -- stage files so that they will be added in the next commit
+git commit -m '[commit message' -- merge staged files into local copy of repository, make the commit messages good!
+git push -- send local copy of repository to code.google.com
+git status -- see what files have been modified/staged in your local repository
+git rm [filename] -- removes a file so that it will be deleted during the next commit (use carefully)
+git checkout -- [filename] -- discards all changes to specified file. Not reversible, use carefully.
+git log -- lists recent commits. using the -p flag shows diffs
+git clone https://FletcherWoodruff@code.google.com/p/quadcopter-is/ -- pulls the remote copy of the repository and places it in your current folder (you should only do this once)
