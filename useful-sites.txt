@@ -1,3 +1,0 @@
-http://rcarduino.blogspot.com/2012/04/how-to-read-multiple-rc-channels-draft.html // reading channels
-https://code.google.com/p/multiwii/wiki/PWM_Generation // writing channels
-http://arduino.cc/en/Tutorial/SecretsOfArduinoPWM // more indepth (haven't read it yet)
