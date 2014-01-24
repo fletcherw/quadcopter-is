@@ -9,10 +9,11 @@ uint16_t thrust;
 
 void setup() {
   updatedShared = 0;
-  
+  Serial.begin(9600);
+  while(!Serial);
   
   pinMode(OUTPIN, OUTPUT);
-  attachInterrupt(PIN, calcThrust, CHANGE);
+  //attachInterrupt(PIN, calcThrust, CHANGE);
 }
 
 void loop() {
@@ -21,10 +22,7 @@ void loop() {
     updatedShared = 0;
   }
   
-  digitalWrite(OUTPIN, HIGH);
-  delay(thrust);
-  digitalWrite(OUTPIN, LOW);
-  delay(thrust);
+  Serial.println(thrust);
 }
 
 void calcThrust() {
