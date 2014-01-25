@@ -15,7 +15,7 @@ void setup(void) {
   digitalWrite(PIN, HIGH);    // Enable pullup resistor (set pin to high and attach other side to ground)
   sei();                    // Enable global interrupts
   EIMSK |= (1 << INT0);     // Enable external interrupt INT0
-  EICRA |= (1 << ISC00);    // Trigger INT0 on falling edge
+  EICRA |= (1 << ISC00);    // Trigger INT0 on any change
 }
                               //
 void loop() {
