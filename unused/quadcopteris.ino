@@ -9,12 +9,15 @@
 #define PITCH_FLAG  4
 #define YAW_FLAG    8
 
+#define THRUST_INDEX 0
+#define ROLL_INDEX 1
+#define PITCH_INDEX 2
+#define YAW_INDEX 3
+
+
 volatile uint8_t updateFlagsShared;
 
-volatile uint16_t thrustInShared;
-volatile uint16_t rollInShared;
-volatile uint16_t pitchInShared;
-volatile uint16_t yawInShared;
+volatile uint16_t controlsShared[4];
 
 //These are used to measure timings in the interrupt functions.
 uint32_t thrustStart;
@@ -32,46 +35,47 @@ void setup() {
 }
 
 void loop() {
-	//These variables hold local copies of input. They're static so that they persist in between calls to loop.
-	static uint16_t thrustIn;
-	static uint16_t rollIn;
-	static uint16_t pitchIn;
-	static uint16_t yawIn;
+	uint16_t controls[4];
 	
 	static uint8_t updateFlags;
 	
 	if (updateFlagsShared) {
 		
-		byte sregRestore = SREG; //Disable interrupts while we grab the shared values
-		cli();
+		updateFlags = updateFlagsShared; //Safe to read once and not twice as it's only one byte.
 		
-		updateFlags = updateFlagsShared;
+		//No need to disable interrupts, we're using read twice and compare.
 		
 		if (updateFlags & THRUST_FLAG) { //Thrust has changed
-			thrustIn = thrustInShared;
+			controls[THRUST_INDEX] = readTwice(&controlsShared[THRUST_INDEX]);
 		}
 
 		if (updateFlags & ROLL_FLAG) {   //Roll has changed
-			rollIn = rollInShared;
+			controls[ROLL_INDEX] = readTwice(&controlsShared[ROLL_INDEX]);
 		}
 
 		if (updateFlags & PITCH_FLAG) {  //Pitch has changed
-			pitchIn = pitchInShared;
+			controls[PITCH_INDEX] = readTwice(&controlsShared[PITCH_INDEX]);
 		}
 
 		if (updateFlags & YAW_FLAG) {    //Yaw has changed
-			yawIn = yawInShared;
+			controls[YAW_INDEX] = readTwice(&controlsShared[YAW_INDEX]);
 		}
 		
 		updateFlagsShared = 0; //Clear the flag, we've already checked all the updates.
-		
-		SREG = sregRestore; //Restore interrupts to whatever they were before. 
-							//Past this point, we can no longer safely read the shared values.
 	}
 	
 	//Do all of the signal processing and outputting to ESCs here
 	
 	updateFlags = 0; //We're done with the update flags.
+}
+
+uint16_t readTwice(uint16_t * var) {
+	do {
+		uint16_t oldVal = *var;
+		uint16_t newVal = *var;
+	} while (oldVal != newVal);
+	
+	return newVal;
 }
 
 void calcThrust() {
