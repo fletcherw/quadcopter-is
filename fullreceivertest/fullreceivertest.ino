@@ -1,9 +1,9 @@
 uint8_t lastPin;
-#define ALL_BITS (1<<1),(1<<2),(1<<3),(1<<4) // 00010, 00100, 01000, 10000
+#define ALL_BITS (1<<1),(1<<2),(1<<3),(1<<4), (1<<5) // 000010, 000100, 001000, 010000, 100000
 
-static uint8_t channelBits[4] = {ALL_BITS};
-volatile uint16_t channels[4] = {1500, 1500, 1500, 1500}; // uSeconds for each channel
-uint16_t freeChannels[4] = {1500, 1500, 1500, 1500}; // non volatile version
+static uint8_t channelBits[5] = {ALL_BITS};
+volatile uint16_t channels[5] = {1500, 1500, 1500, 1500}; // uSeconds for each channel
+uint16_t freeChannels[5] = {1500, 1500, 1500, 1500}; // non volatile version
 void setup() {
   //sei();
   Serial.begin(9600); // start up the serial connection
@@ -17,10 +17,13 @@ void setup() {
   PCMSK0 |= (1 << PCINT2);
   PCMSK0 |= (1 << PCINT1);
   lastPin = PINB; // PINB is the state of every pin in the B set (PB#). it is an 8 bit int, but PINB is just using the binary part so 11111 is everything HIGH and 00000 is everything low
+  
+  EICRB |= (1<<ISC60); //Enabling int6 interrupt type
+  EIMSK |= (1<<INT6); //Activing that interrupt
 }
 
 void loop() {
-  for (int ii = 0; ii < 4; ii++) { // copy volatile to free channels
+  for (int ii = 0; ii < 5; ii++) { // copy volatile to free channels
     freeChannels[ii] = channels[ii];
     Serial.print(freeChannels[0]); // print em
     Serial.print("," );
@@ -34,7 +37,7 @@ ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when 
   uint8_t diff; // a diff between the pins and mask to see what's changed
   uint8_t pin; // the pins
   uint16_t currentT, deltaT; // timers
-  static uint16_t risingEdge[4]; // stored rising edge
+  static uint16_t risingEdge[5]; // stored rising edge
   pin = PINB; // set pin to what everything's state is right now
   diff = pin ^ lastPin; // do a XOR of pin and lastPin which means that if there is a difference that bit goes HIGH. ex: 1111 and 1101 would result in 0010
   currentT = micros(); // set start time to micros
@@ -44,6 +47,13 @@ ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when 
   testPin(1, diff, currentT, deltaT, risingEdge);
   testPin(2, diff, currentT, deltaT, risingEdge);
   testPin(3, diff, currentT, deltaT, risingEdge);
+}
+
+ISR(INT6_vect) {
+  uint16_t currentT, deltaT; // timers
+  static uint16_t risingEdge[5]; // stored rising edge
+  currentT = micros(); // set start time to micros
+  testPin(5, channelBits[5], currentT, deltaT, risingEdge);
 }
 
 void testPin(uint8_t pin, uint8_t diff, uint16_t currentT, uint16_t deltaT, uint16_t risingEdge[]) { // calculates RC stuff
