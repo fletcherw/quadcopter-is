@@ -1,4 +1,3 @@
-#include <avr/interrupt.h>
 uint8_t lastPin;
 #define ALL_BITS (1<<1),(1<<2),(1<<3),(1<<4) // 00010, 00100, 01000, 10000
 
