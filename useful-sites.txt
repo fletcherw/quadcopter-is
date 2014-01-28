@@ -4,3 +4,6 @@ http://arduino.cc/en/Tutorial/SecretsOfArduinoPWM // more indepth (haven't read 
 
 more indepth interrupt explanation
 http://www.engblaze.com/we-interrupt-this-program-to-bring-you-a-tutorial-on-arduino-interrupts/
+
+Super useful:
+https://sites.google.com/site/qeewiki/books/avr-guide/external-interrupts-on-the-atmega328
