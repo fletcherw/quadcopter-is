@@ -35,7 +35,7 @@ void loop() {
 // c macro which replaces the place where TEST_PIN is used with this code. It's faster and has less parameters!!!!
 #define TEST_PIN(pin,diff) {                               \
   if (diff & channelBits[pin]) {                           \
-    if (!(lastPin & channelBits[pin])) {                   \
+    if (!(pin & channelBits[pin])) {                       \
       deltaT = currentT - risingEdge[pin];                 \
       if (900 < deltaT && deltaT < 2200) {                 \
         channels[pin] = deltaT;                            \
