@@ -1,11 +1,11 @@
 uint8_t lastPin;
-#define ALL_BITS (1<<1),(1<<2),(1<<3),(1<<4), (1<<5) // 000010, 000100, 001000, 010000, 100000
+#define ALL_BITS (1<<0), (1<<2),(1<<3),(1<<1),(1<<4) // 000010, 000100, 001000, 010000, 100000
 
 static uint8_t channelBits[5] = {ALL_BITS};
-volatile uint16_t channels[5] = {1500, 1500, 1500, 1500}; // uSeconds for each channel
-uint16_t freeChannels[5] = {1500, 1500, 1500, 1500}; // non volatile version
+volatile uint16_t channels[5] = {1500, 1500, 1500, 1500 , 1500}; // uSeconds for each channel
+uint16_t freeChannels[5] = {1500, 1500, 1500, 1500, 1500}; // non volatile version
 void setup() {
-  //sei();
+  sei();
   Serial.begin(9600); // start up the serial connection
   for (int ii = 2; ii <= 13; ii++) { // turn all pins to input and HIGH so when we drop them to ground they are different
     pinMode(ii, INPUT);
@@ -25,7 +25,7 @@ void setup() {
 void loop() {
   for (int ii = 0; ii < 5; ii++) { // copy volatile to free channels
     freeChannels[ii] = channels[ii];
-    Serial.print(freeChannels[0]); // print em
+    Serial.print(freeChannels[ii]); // print em
     Serial.print("," );
   }
   Serial.println(); // new line
@@ -43,27 +43,32 @@ ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when 
   currentT = micros(); // set start time to micros
   sei(); // reenable interrups because all timing sensitive stuff is done
   lastPin = pin; // set lastPin to pin for the next time the interrupt is called
-  testPin(0, diff, currentT, deltaT, risingEdge); // check every pin and calculate the uSeconds. Could be better
-  testPin(1, diff, currentT, deltaT, risingEdge);
+  testPin(1, diff, currentT, deltaT, risingEdge); // check every pin and calculate the uSeconds. Could be better
   testPin(2, diff, currentT, deltaT, risingEdge);
   testPin(3, diff, currentT, deltaT, risingEdge);
+  testPin(4, diff, currentT, deltaT, risingEdge);
 }
 
 ISR(INT6_vect) {
   uint16_t currentT, deltaT; // timers
-  static uint16_t risingEdge[5]; // stored rising edge
+  static uint16_t risingEdge; // stored rising edge
   currentT = micros(); // set start time to micros
-  testPin(5, channelBits[5], currentT, deltaT, risingEdge);
+  if (!(PINE & (1<<6))) { // pin e is the set that 7 is on. 7 is pin 6 for some reason so we shift it 6 over
+    deltaT = currentT - risingEdge; // same code as testPin, but shorter because we don't need one of the if statements because of the external interrupt
+    if (900 < deltaT && deltaT < 2200) {
+      channels[0] = deltaT;
+    }
+  } else risingEdge = currentT;
 }
 
 void testPin(uint8_t pin, uint8_t diff, uint16_t currentT, uint16_t deltaT, uint16_t risingEdge[]) { // calculates RC stuff
   if (diff & channelBits[pin]) { // checks if that pin is HIGH
-    if (!(pin & channelBits[pin])) { // makes sure it wasn't HIGH last time (it changed)
+    if (!(lastPin & channelBits[pin])) { // makes sure it wasn't HIGH last time (it changed)
       deltaT = currentT - risingEdge[pin]; // checks deltaT
       if (900 < deltaT && deltaT < 2200) { // if it is valid RC signal set it as an RC signal
         channels[pin] = deltaT;
-      } else risingEdge[pin] = currentT; // else set the current time as the first edge of the wave
-    }
+      }
+    } else risingEdge[pin] = currentT; // else set the current time as the first edge of the wave
   }
 }
 
