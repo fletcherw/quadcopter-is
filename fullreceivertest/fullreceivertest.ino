@@ -32,7 +32,17 @@ void loop() {
   delay(500); // wait a bit
 
 }
-
+// c macro which replaces the place where TEST_PIN is used with this code. It's faster and has less parameters!!!!
+#define TEST_PIN(pin,diff) {                               \
+  if (diff & channelBits[pin]) {                           \
+    if (!(lastPin & channelBits[pin])) {                   \
+      deltaT = currentT - risingEdge[pin];                 \
+      if (900 < deltaT && deltaT < 2200) {                 \
+        channels[pin] = deltaT;                            \
+      }                                                    \
+    } else risingEdge[pin] = currentT;                     \
+  }                                                        \
+}
 ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when any of them change state the interrupt is triggered
   uint8_t diff; // a diff between the pins and mask to see what's changed
   uint8_t pin; // the pins
@@ -43,10 +53,10 @@ ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when 
   currentT = micros(); // set start time to micros
   sei(); // reenable interrups because all timing sensitive stuff is done
   lastPin = pin; // set lastPin to pin for the next time the interrupt is called
-  testPin(1, diff, currentT, deltaT, risingEdge); // check every pin and calculate the uSeconds. Could be better
-  testPin(2, diff, currentT, deltaT, risingEdge);
-  testPin(3, diff, currentT, deltaT, risingEdge);
-  testPin(4, diff, currentT, deltaT, risingEdge);
+  TEST_PIN(1, diff); // check every pin and calculate the uSeconds. Could be better
+  TEST_PIN(2, diff);
+  TEST_PIN(3, diff);
+  TEST_PIN(4, diff);
 }
 
 ISR(INT6_vect) {
@@ -61,16 +71,8 @@ ISR(INT6_vect) {
   } else risingEdge = currentT;
 }
 
-void testPin(uint8_t pin, uint8_t diff, uint16_t currentT, uint16_t deltaT, uint16_t risingEdge[]) { // calculates RC stuff
-  if (diff & channelBits[pin]) { // checks if that pin is HIGH
-    if (!(lastPin & channelBits[pin])) { // makes sure it wasn't HIGH last time (it changed)
-      deltaT = currentT - risingEdge[pin]; // checks deltaT
-      if (900 < deltaT && deltaT < 2200) { // if it is valid RC signal set it as an RC signal
-        channels[pin] = deltaT;
-      }
-    } else risingEdge[pin] = currentT; // else set the current time as the first edge of the wave
-  }
-}
+
+
 
 // a method to convert 8 bit ints into a string that displays the int as binary
 void toBin(uint8_t n) {
