@@ -2,7 +2,7 @@ uint8_t lastPin;
 #define ALL_BITS (1<<0), (1<<2),(1<<3),(1<<1),(1<<4) // 000010, 000100, 001000, 010000, 100000
 
 static uint8_t channelBits[5] = {ALL_BITS};
-volatile uint16_t channels[5] = {1500, 1500, 1500, 1500 , 1500}; // uSeconds for each channel
+volatile uint16_t channels[5] = {1500, 1500, 1500, 1500 , 1500}; // uSeconds for each channelg
 uint16_t freeChannels[5] = {1500, 1500, 1500, 1500, 1500}; // non volatile version
 void setup() {
   sei();
@@ -36,18 +36,18 @@ void loop() {
 #define TEST_PIN(pin,diff) {                               \
   if (diff & channelBits[pin]) {                           \
     if (!(pin & channelBits[pin])) {                       \
-      deltaT = currentT - risingEdge[pin];                 \
+      deltaT = currentT - risingEdge[pin - 1];                 \
       if (900 < deltaT && deltaT < 2200) {                 \
         channels[pin] = deltaT;                            \
       }                                                    \
-    } else risingEdge[pin] = currentT;                     \
+    } else risingEdge[pin - 1] = currentT;                     \
   }                                                        \
 }
 ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when any of them change state the interrupt is triggered
   uint8_t diff; // a diff between the pins and mask to see what's changed
   uint8_t pin; // the pins
   uint16_t currentT, deltaT; // timers
-  static uint16_t risingEdge[5]; // stored rising edge
+  static uint16_t risingEdge[4]; // stored rising edge
   pin = PINB; // set pin to what everything's state is right now
   diff = pin ^ lastPin; // do a XOR of pin and lastPin which means that if there is a difference that bit goes HIGH. ex: 1111 and 1101 would result in 0010
   currentT = micros(); // set start time to micros
