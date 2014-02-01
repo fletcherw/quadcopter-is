@@ -8,8 +8,8 @@ void setup() {
   sei();
   Serial.begin(9600); // start up the serial connection
   for (int ii = 2; ii <= 13; ii++) { // turn all pins to input and HIGH so when we drop them to ground they are different
-    pinMode(ii, INPUT);
     digitalWrite(ii, HIGH);
+    pinMode(ii, INPUT);
   }
   PCICR |= (1 << PCIE0); // turn on interrupts for pins pb 1-5 (arduino 8 - 13)
   PCMSK0 |= (1 << PCINT4); // turn on all of those pins interrupts
@@ -29,18 +29,18 @@ void loop() {
     Serial.print("," );
   }
   Serial.println(); // new line
-  delay(500); // wait a bit
+  delay(500); // wait a bit 
 
 }
 // c macro which replaces the place where TEST_PIN is used with this code. It's faster and has less parameters!!!!
-#define TEST_PIN(pin,diff) {                               \
-  if (diff & channelBits[pin]) {                           \
-    if (!(pin & channelBits[pin])) {                       \
-      deltaT = currentT - risingEdge[pin];                 \
+#define TEST_PIN(pinByte,diff) {                               \
+  if (diff & channelBits[pinByte]) {                           \
+    if (!(pin & channelBits[pinByte])) {                       \
+      deltaT = currentT - risingEdge[pinByte];                 \
       if (900 < deltaT && deltaT < 2200) {                 \
-        channels[pin] = deltaT;                            \
+        channels[pinByte] = deltaT;                            \
       }                                                    \
-    } else risingEdge[pin] = currentT;                     \
+    } else risingEdge[pinByte] = currentT;                     \
   }                                                        \
 }
 ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when any of them change state the interrupt is triggered
