@@ -32,17 +32,19 @@ void loop() {
   delay(500); // wait a bit 
 
 }
+
 // c macro which replaces the place where TEST_PIN is used with this code. It's faster and has less parameters!!!!
 #define TEST_PIN(pinByte,diff) {                               \
   if (diff & channelBits[pinByte]) {                           \
     if (!(pin & channelBits[pinByte])) {                       \
       deltaT = currentT - risingEdge[pinByte];                 \
-      if (900 < deltaT && deltaT < 2200) {                 \
+      if (900 < deltaT && deltaT < 2200) {                     \
         channels[pinByte] = deltaT;                            \
-      }                                                    \
+      }                                                        \
     } else risingEdge[pinByte] = currentT;                     \
-  }                                                        \
+  }                                                            \
 }
+
 ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when any of them change state the interrupt is triggered
   uint8_t diff; // a diff between the pins and mask to see what's changed
   uint8_t pin; // the pins
@@ -53,7 +55,7 @@ ISR(PCINT0_vect) { // the interrupt for ALL of the B pins. This means that when 
   currentT = micros(); // set start time to micros
   sei(); // reenable interrups because all timing sensitive stuff is done
   lastPin = pin; // set lastPin to pin for the next time the interrupt is called
-  TEST_PIN(1, diff); // check every pin and calculate the uSeconds. Could be better
+  TEST_PIN(1, diff); // check every pin and calculate the uSeconds. Calls the macro above it
   TEST_PIN(2, diff);
   TEST_PIN(3, diff);
   TEST_PIN(4, diff);
@@ -70,9 +72,6 @@ ISR(INT6_vect) {
     }
   } else risingEdge = currentT;
 }
-
-
-
 
 // a method to convert 8 bit ints into a string that displays the int as binary
 void toBin(uint8_t n) {
