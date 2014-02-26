@@ -2,8 +2,7 @@
 int motorVal = (1000<<3);
 int counter = 0;
 void setup() {
-  Serial.begin(9600);
-  while(!Serial);
+  delay(500);
   setupMotor();
 }
 
@@ -28,10 +27,9 @@ void setupMotor() {
 
 void setMotor() {
   counter++;
-  Serial.println(counter);
-  Serial.println(motorVal);
+  delay(500);
   OCR1A = motorVal;
-  if (counter > 12000) {
+  if (counter > 10) {
     if (motorVal < (1600<<3)) {
       motorVal = (1600<<3);
     } else if (motorVal > (1000<<3)){
