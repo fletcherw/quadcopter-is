@@ -1,0 +1,30 @@
+    writeMotors()
+	// Timer 1 A & B [1000:2000] => [8000:16000]
+		OCR1A = freeChannels[0]<<3; //  pin 9
+		OCR1B = freeChannels[1]<<3; //  pin 10
+	// Timer 4 A & D [1000:2000] => [1000:2000]
+        OCR3A = freeChannels[2]<<3; //  pin 5
+        TC4H = freeChannels[3]>>8; OCR4D = (freeChannels[3]&0xFF); //  pin 6
+	
+	
+
+      TCCR1A |= (1<<WGM11); // phase correct mode & no prescaler
+      TCCR1A &= ~(1<<WGM10);
+      TCCR1B &= ~(1<<WGM12) &  ~(1<<CS11) & ~(1<<CS12);
+      TCCR1B |= (1<<WGM13) | (1<<CS10); 
+      ICR1   |= 0x3FFF; // TOP to 16383;
+      TCCR1A |= _BV(COM1A1); // connect pin 9 to timer 1 channel A
+
+
+
+      TCCR1A |= _BV(COM1B1); // connect pin 10 to timer 1 channel B
+      TCCR3A |= (1<<WGM31); // phase correct mode & no prescaler
+      TCCR3A &= ~(1<<WGM30);
+      TCCR3B &= ~(1<<WGM32) &  ~(1<<CS31) & ~(1<<CS32);
+      TCCR3B |= (1<<WGM33) | (1<<CS30); 
+      ICR3   |= 0x3FFF; // TOP to 16383;     
+      TCCR3A |= _BV(COM3A1); // connect pin 5 to timer 3 channel A    
+      TCCR4E |= (1<<ENHC4); // enhanced pwm mode
+      TCCR4B &= ~(1<<CS41); TCCR4B |= (1<<CS42)|(1<<CS40); // prescaler to 16
+      TCCR4D |= (1<<WGM40); TC4H = 0x3; OCR4C = 0xFF; // phase and frequency correct mode & top to 1023 but with enhanced pwm mode we have 2047
+      TCCR4C |= (1<<COM4D1)|(1<<PWM4D); // connect pin 6 to timer 4 channel D

@@ -1,5 +1,5 @@
 
-int motorVal = (1600);
+int motorVal = (1600<<3);
 
 
 void setupMotor() {
@@ -8,11 +8,11 @@ void setupMotor() {
   TCCR1B &= ~(1<<CS11);
   ICR1 |= 0x3FFF;
   TCCR1A |= _BV(COM1A1);
-  OCR1A = 1000;
+  OCR1A = motorVal;
 }
 
 void setMotor() {
   OCR1A = motorVal;
-  Serial.println(motorVal);
+  Serial.println(OCR1A);
 
 }
