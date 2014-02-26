@@ -1,9 +1,9 @@
 
-int motorVal = (1600<<3);
-
+int motorVal = (1000<<3);
+int counter = 0;
 void setup() {
-  //Serial.begin(9600);
-  //while(!Serial);
+  Serial.begin(9600);
+  while(!Serial);
   setupMotor();
 }
 
@@ -22,10 +22,24 @@ void setupMotor() {
  
   ICR1 |= 0x3FFF;        //Setting Input Capture register to high
   TCCR1A |= (1<<COM1A1); //Pin 9, Setting Timer comparator 1A register bit 7 (WGM11) to on
-  OCR1A |= 1000<<3;     //Setting Timer comparator output register to zero.
+  OCR1A |= 1200<<3;     //Setting Timer comparator output register to zero percent throttle.
   delay(500);
 }
 
 void setMotor() {
+  counter++;
+  Serial.println(counter);
+  Serial.println(motorVal);
   OCR1A = motorVal;
+  if (counter > 12000) {
+    if (motorVal < (1600<<3)) {
+      motorVal = (1600<<3);
+    } else if (motorVal > (1000<<3)){
+      motorVal =(1000<<3);
+    }
+    
+    counter = 0;
+  }
+  //if (counter > 12000)
+    //motorVal = 2000<<3;
 }
