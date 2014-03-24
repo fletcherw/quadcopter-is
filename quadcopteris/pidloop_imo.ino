@@ -55,9 +55,13 @@ uint16_t fifoCount;     // count of all bytes currently in FIFO
 uint8_t fifoBuffer[64]; // FIFO storage buffer
 uint16_t throttle = 1500;
 Quaternion t;
+
 uint8_t P[3];
 uint8_t I[3];
 uint8_t D[3];
+uint8_t CurrentIntegral[3];
+uint9_t OldTarget[3];
+
 // orientation/motion vars
 Quaternion q;           // [w, x, y, z]         quaternion container
 
@@ -220,23 +224,66 @@ void imuLoop() {
         blinkState = !blinkState;
         digitalWrite(LED_PIN, blinkState);
     }
-    //roll
-    motorValue[0] = throttle + (q.x - t.x) * P[0];
-    motorValue[1] = throttle + (q.x - t.x) * -P[0];
-    motorValue[2] = throttle + (q.x - t.x) * -P[0];
-    motorValue[3] = throttle + (q.x - t.x) * P[0];
     
-    //pitch
-    motorValue[0] += (q.y - t.y) * -P[1];
-    motorValue[1] += (q.y - t.y) * -P[1];
-    motorValue[2] += (q.y - t.y) * P[1];
-    motorValue[3] += (q.y - t.y) * P[1];
+    //PID LOOP PROPORTIONAL TERMS HERE -------------------------
+      
+      uint8_t xErr = q.x - t.x;
+      uint8_t yErr = q.y - t.y;
+      uint8_t zErr = q.z - t.z;
     
-    //yaw
-    motorValue[0] += (q.z - t.z) * -P[2];
-    motorValue[1] += (q.z - t.z) * P[2];
-    motorValue[2] += (q.z - t.z) * -P[2];
-    motorValue[3] += (q.z - t.z) * P[2];
+      //roll
+      motorValue[0] = throttle + xErr * P[0];
+      motorValue[1] = throttle + xErr * -P[0];
+      motorValue[2] = throttle + xErr * -P[0];
+      motorValue[3] = throttle + xErr * P[0];
+      
+      //pitch
+      motorValue[0] += yErr * -P[1];
+      motorValue[1] += yErr * -P[1];
+      motorValue[2] += yErr * P[1];
+      motorValue[3] += yErr * P[1];
+      
+      //yaw
+      motorValue[0] += zErr * -P[2];
+      motorValue[1] += zErr * P[2];
+      motorValue[2] += zErr * -P[2];
+      motorValue[3] += zErr * P[2];
+    //PID LOOP INTEGRAL TERMS HERE -----------------------------
+      //reset the integrals if targets have changed, otherwise add to them
+      if(OldTarget[0] == t.x) {
+        CurrentIntegral[0] += xErr;
+      }
+      else {
+        CurrentIntegral[0] = 0;
+      }
+      if(OldTarget[1] == t.y) {
+        CurrentIntegral[1] += xErr;
+      }
+      else {
+        CurrentIntegral[1] = 0;
+      }
+      if(OldTarget[2] == t.z) {
+        CurrentIntegral[2] += xErr;
+      }
+      else {
+        CurrentIntegral[2] = 0;
+      }
+      
+      //roll
+      //motorValue[0] += xErr * I[0];
+      //motorValue[1] += xErr * -I[0];
+      //motorValue[2] += xErr * -I[0];
+      //motorValue[3] += xErr * I[0];
+      
+      
+      //set oldtargets
+       OldTarget[0] = t.x;
+       OldTarget[1] = t.y;
+       OldTarget[2] = t.z;
+    //----------------------------------------------------------
+          
+      
+    //if the values are higher or lower than they should be (unlikely), set them back to a reasonable range
     for (int ii = 0; ii < 4; ii++) {
       if (motorValue[ii] < 1000)
         motorValue[ii] = 1000;
